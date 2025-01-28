@@ -9,7 +9,7 @@ use App\Http\Controllers\SmsController;
 
 // Anasayfayı /sms/send rotasına yönlendir
 Route::get('/', function () {
-    return view('index');
+    return redirect('/sms/send');
 });
 
 // /sms/send rotasına erişim herkese açık
