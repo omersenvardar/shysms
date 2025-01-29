@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Credit;
 use App\Models\Paket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -17,57 +18,50 @@ class CreditController extends Controller
     public function process(Request $request)
     {
         $request->validate([
-            'paket_id' => 'required|exists:paketler,id', // Geçerli bir paket ID olmalı
-            'payment_method' => 'required|in:gsm,credit_card',
+            'paket_id' => 'required|exists:paketler,id',
+            'payment_method' => 'required|in:credit_card,gsm',
         ]);
 
-        // Paketin bilgilerini al
-        $paket = \App\Models\Paket::findOrFail($request->paket_id);
+        // Seçilen paket bilgilerini alın
+        $package = Paket::findOrFail($request->paket_id);
 
-        // PayTR API bilgileri
-        $merchant_id = env('PAYTR_MERCHANT_ID');
-        $merchant_key = env('PAYTR_MERCHANT_KEY');
-        $merchant_salt = env('PAYTR_MERCHANT_SALT');
+        // PayTR API bilgilerini doğrudan burada tanımlıyoruz
+        $merchant_id = '535782';
+        $merchant_key = 'PJqGuehf6a3bhcse';
+        $merchant_salt = 'M7jaZmg5ZpzrcZw5';
         $success_url = route('credits.success');
         $fail_url = route('credits.fail');
 
-        $paymentMethod = $request->payment_method;
-
-        // PayTR API'ye gönderilecek bilgiler
+        // Kullanıcı bilgileri ve ödeme miktarı
         $user_ip = request()->ip();
-        $merchant_oid = uniqid(); // Benzersiz işlem numarası
+        $merchant_oid = uniqid();
+        $payment_amount = $package->paketbedeli * 100; // TL'den kuruşa çevir
+        $payment_type = $request->payment_method;
 
+        // PayTR için gerekli veriler
         $post_data = [
             'merchant_id' => $merchant_id,
             'user_ip' => $user_ip,
             'merchant_oid' => $merchant_oid,
-            'email' => auth()->user()->email, // Kullanıcının e-posta adresi
-            'payment_amount' => $paket->paketbedeli * 100, // PayTR kuruş bazlı çalışır
-            'payment_type' => $paymentMethod === 'gsm' ? 'gsm' : 'card',
+            'email' => auth()->user()->email,
+            'payment_amount' => $payment_amount,
+            'payment_type' => $payment_type === 'gsm' ? 'gsm' : 'card',
             'currency' => 'TL',
             'success_url' => $success_url,
             'fail_url' => $fail_url,
         ];
 
         // Hash oluşturma
-        $hash_str = $merchant_id . $user_ip . $merchant_oid . $post_data['payment_amount'] . $success_url . $fail_url . $merchant_salt;
+        $hash_str = $merchant_id . $user_ip . $merchant_oid . $payment_amount . $success_url . $fail_url . $merchant_salt;
         $post_data['paytr_token'] = base64_encode(hash_hmac('sha256', $hash_str, $merchant_key, true));
 
-        // PayTR'ye isteği gönder
+        // PayTR'ye istek gönder
         $response = Http::post('https://www.paytr.com/odeme/api/get-token', $post_data);
 
         $result = $response->json();
 
         if ($result['status'] === 'success') {
-            // Kullanıcı ödemeyi yaparken credits tablosuna işlem başlatma kaydı
-            \App\Models\Credit::create([
-                'user_id' => auth()->id(),
-                'payment_method' => $paymentMethod,
-                'status' => 'pending', // Başlangıçta beklemede
-                'amount' => $paket->kontoradeti, // Kontör adedi
-            ]);
-
-            // Ödeme sayfasına yönlendir
+            // Ödeme ekranına yönlendir
             return redirect()->away($result['token_url']);
         } else {
             return redirect()->route('credits.show')->with('error', 'Ödeme işlemi başlatılamadı: ' . $result['reason']);
@@ -76,25 +70,23 @@ class CreditController extends Controller
 
     public function success(Request $request)
     {
-        // Ödeme başarılı, ilgili krediyi güncelle
-        $credit = \App\Models\Credit::where('user_id', auth()->id())
-            ->where('status', 'pending') // Bekleyen işlem
-            ->latest()
-            ->first();
+        $packageId = $request->package_id; // Paket ID'yi alın
+        $package = Paket::findOrFail($packageId);
 
-        if ($credit) {
-            $credit->update(['status' => 'approved']);
+        // Kullanıcının kredi tablosunu güncelle
+        Credit::create([
+            'user_id' => auth()->user()->id,
+            'payment_method' => $request->payment_method,
+            'status' => 'approved',
+            'amount' => $package->kontoradeti,
+        ]);
 
-            // Kullanıcıya kontör ekle
-            auth()->user()->increment('balance', $credit->amount);
-        }
-
-        return view('credits.success')->with('success', 'Paket başarıyla satın alındı ve kontörleriniz eklendi!');
+        return redirect()->route('credits.show')->with('success', 'Paket başarıyla satın alındı ve kontörler tanımlandı!');
     }
-
 
     public function fail()
     {
-        return view('credits.fail');
+        return redirect()->route('credits.show')->with('error', 'Ödeme işlemi başarısız oldu.');
     }
+
 }

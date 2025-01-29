@@ -11,5 +11,11 @@ class Paket extends Model
 
     protected $table = 'paketler';
 
-    protected $fillable = ['paketadi', 'kontoradeti', 'paketbedeli'];
+    protected $fillable = [
+        'paketadi',
+        'kontoradeti',
+        'kontorbedeli',
+        'paketbedeli',
+    ];
+
 }

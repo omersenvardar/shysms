@@ -2,24 +2,37 @@
 
 @section('content')
     <div class="container mt-5">
-        <h2 class="mb-4">Paketler</h2>
-        <div class="row">
-            @foreach($paketler as $paket)
-                <div class="col-md-4">
-                    <div class="card mb-4">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">{{ $paket->paketadi }}</h5>
-                            <p class="card-text">Kontör Adedi: {{ $paket->kontoradeti }}</p>
-                            <p class="card-text">Fiyat: {{ $paket->paketbedeli }} TL</p>
-                            <form action="{{ route('paketler.satin.al') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="paket_id" value="{{ $paket->id }}">
-                                <button type="submit" class="btn btn-primary">Satın Al</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
+        <h2 class="mb-4">Paket Satın Al</h2>
+
+        @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        <form action="{{ route('credits.process') }}" method="POST">
+            @csrf
+            <div class="mb-3">
+                <label for="package" class="form-label">Paket Seçimi</label>
+                <select class="form-control" id="package" name="package_id" required>
+                    @foreach ($packages as $package)
+                        <option value="{{ $package->id }}">
+                            {{ $package->paketadi }} - {{ $package->kontoradeti }} Kontör - {{ $package->paketbedeli }} TL
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="payment_method" class="form-label">Ödeme Yöntemi</label>
+                <select class="form-control" id="payment_method" name="payment_method" required>
+                    <option value="credit_card">Kredi Kartı</option>
+                    <option value="gsm">GSM Ödeme</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Ödemeye Devam Et</button>
+        </form>
     </div>
 @endsection
