@@ -11,11 +11,11 @@
         <form action="{{ route('register') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label for="nickname" class="form-label">Takma Ad</label>
+                <label for="nickname" class="form-label">Takma Ad ( Zorunlu )</label>
                 <input type="text" class="form-control" id="nickname" name="nickname" required>
             </div>
             <div class="mb-3">
-                <label for="email" class="form-label">E-Posta</label>
+                <label for="email" class="form-label">E-Posta ( Opsiyonel )</label>
                 <input type="email" class="form-control" id="email" name="email">
             </div>
             <div class="mb-3">

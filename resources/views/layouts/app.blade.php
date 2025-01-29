@@ -46,15 +46,19 @@
                     <a class="nav-link" href="{{ route('nasil') }}">Nasıl Çalışır</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('inbox.show') }}">Gelen Kutusu</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="{{ route('credits.show') }}">Paketler</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('register') }}">Kayıt Ol</a>
-                </li>
+                @guest
+                    <!-- Kayıt Ol ve Giriş Yap yalnızca oturum açmamış kullanıcılar için -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('register') }}">Kayıt Ol</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('login') }}">Giriş Yap</a>
+                    </li>
+                @endguest
                 @auth
+                    <!-- Oturum açmış kullanıcılar için -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> {{ Auth::user()->name }} ({{ floor($totalCredits) }} Kontör)
@@ -68,10 +72,6 @@
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                         @csrf
                     </form>
-                @else
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Giriş Yap</a>
-                    </li>
                 @endauth
             </ul>
         </div>

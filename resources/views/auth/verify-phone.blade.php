@@ -16,13 +16,19 @@
             @csrf
 
             <!-- Telefon Numarası -->
-            <div class="mb-3 d-flex">
-                <input type="text" class="form-control" id="phone" name="phone" placeholder="Telefon Numaranız" value="{{ old('phone') }}" required>
-                <button type="button" class="btn btn-secondary ms-2" id="send-code">Kod Gönder</button>
+            <div class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text">+90</span>
+                    <input type="text" class="form-control" id="phone" name="phone" placeholder="Telefon Numaranız" value="{{ old('phone') }}" maxlength="10" required>
+                </div>
+                <small class="form-text text-muted">Telefon numarasını başında 0 olmadan ve 10 hane olarak girin.</small>
             </div>
+
+            <button type="button" class="btn btn-secondary mb-3" id="send-code" disabled>Kod Gönder</button>
 
             <!-- Doğrulama Kodu -->
             <div class="mb-3">
+                <label for="verification_code" class="form-label">Doğrulama Kodu</label>
                 <input type="text" class="form-control" id="verification_code" name="verification_code" placeholder="Doğrulama Kodu" required>
             </div>
 
@@ -39,43 +45,88 @@
     </div>
 
     <script>
-        document.getElementById('send-code').addEventListener('click', function () {
-            const phone = document.getElementById('phone').value;
+        document.addEventListener('DOMContentLoaded', function () {
+            const sendCodeButton = document.getElementById('send-code');
+            const phoneInput = document.getElementById('phone');
+            let countdown;
 
-            if (!phone || !/^[0-9]{10,15}$/.test(phone)) {
-                alert('Lütfen geçerli bir telefon numarası girin.');
-                return;
+            // İlk yüklemede butonu kontrol et
+            checkPhoneInput();
+
+            // Telefon numarası değiştikçe buton durumunu kontrol et
+            phoneInput.addEventListener('input', checkPhoneInput);
+
+            function checkPhoneInput() {
+                const phone = phoneInput.value;
+                if (phone.length === 10 && /^[0-9]+$/.test(phone)) {
+                    sendCodeButton.disabled = false;
+                } else {
+                    sendCodeButton.disabled = true;
+                }
             }
 
-            // CSRF Token alıyoruz
-            const tokenElement = document.querySelector('meta[name="csrf-token"]');
-            if (!tokenElement) {
-                alert('CSRF token bulunamadı. Sayfayı yenileyin ve tekrar deneyin.');
-                return;
-            }
+            sendCodeButton.addEventListener('click', function () {
+                const phone = phoneInput.value;
 
-            const token = tokenElement.getAttribute('content');
+                // Telefon numarasının geçerli olup olmadığını kontrol edin
+                if (!phone || phone.length !== 10 || !/^[0-9]+$/.test(phone)) {
+                    alert('Lütfen 10 haneli geçerli bir telefon numarası girin.');
+                    return;
+                }
 
-            fetch('{{ route('phone.send-code') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                },
-                body: JSON.stringify({ phone: phone }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Doğrulama kodu gönderildi.');
-                    } else {
-                        alert('Kod gönderilemedi: ' + (data.message || 'Bilinmeyen bir hata.'));
-                    }
+                // CSRF Token alıyoruz
+                const tokenElement = document.querySelector('meta[name="csrf-token"]');
+                const token = tokenElement ? tokenElement.getAttribute('content') : null;
+
+                if (!token) {
+                    alert('CSRF token bulunamadı. Sayfayı yenileyin ve tekrar deneyin.');
+                    return;
+                }
+
+                // Doğrulama kodu gönderme isteği
+                fetch('{{ route('phone.send-code') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                    },
+                    body: JSON.stringify({ phone: '90' + phone }),
                 })
-                .catch(error => {
-                    console.error('Hata:', error);
-                    alert('Bir hata oluştu. Lütfen tekrar deneyin.');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Doğrulama kodu gönderildi.');
+                            startCountdown(); // Geri sayım başlat
+                        } else {
+                            alert('Kod gönderilemedi: ' + (data.message || 'Bilinmeyen bir hata.'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Hata:', error);
+                        alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+                    });
+            });
+
+            function startCountdown() {
+                let seconds = 60;
+                sendCodeButton.disabled = true;
+                updateButtonText(seconds);
+
+                countdown = setInterval(() => {
+                    seconds--;
+                    updateButtonText(seconds);
+
+                    if (seconds <= 0) {
+                        clearInterval(countdown);
+                        sendCodeButton.disabled = false;
+                        sendCodeButton.textContent = 'Kod Gönder';
+                    }
+                }, 1000);
+            }
+
+            function updateButtonText(seconds) {
+                sendCodeButton.textContent = `Tekrar Gönder (${seconds})`;
+            }
         });
     </script>
 @endsection

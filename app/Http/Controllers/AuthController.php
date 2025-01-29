@@ -12,7 +12,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'nickname' => 'required|max:255',
+            'nickname' => 'required|max:255|unique:users,nickname', // Nickname benzersiz olmalı
             'password' => 'required|min:1',
         ]);
 
@@ -20,20 +20,30 @@ class AuthController extends Controller
             'nickname' => $request->nickname,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'phone' => $request->phone,
             'phone_verified' => false, // Varsayılan olarak doğrulama yapılmadı
             'kvkk_accepted' => false, // Varsayılan olarak KVKK onayı yapılmadı
             'name' => $request->nickname, // Name alanını nickname ile dolduruyoruz
         ]);
 
+        // Credits tablosuna 10 kontör ekleniyor
+        \App\Models\Credit::create([
+            'user_id' => $user->id,
+            'payment_method' => 'system', // Sistem tarafından eklenen kontör
+            'status' => 'approved', // Onaylanmış
+            'amount' => 10, // 10 kontör
+        ]);
+
         Auth::login($user);
 
-        return redirect()->route('phone.verify.form');
+        return redirect()->route('phone.verify.form')->with('success', 'Kayıt başarılı! Telefon numaranızı doğrulayın.');
     }
 
     public function showPhoneVerifyForm()
     {
         return view('auth.verify-phone');
     }
+
     public function showRegisterForm()
     {
         return view('auth.register');
@@ -42,43 +52,47 @@ class AuthController extends Controller
     public function sendVerificationCode(Request $request)
     {
         $request->validate([
-            'phone' => 'required|regex:/^[0-9]{10,15}$/',
+            'phone' => 'required|regex:/^[0-9]{10,15}$/', // 10 haneli telefon numarası kontrolü
         ]);
+
+        $phoneWithPrefix = $request->phone; // Numaranın başına 90 ekle
 
         $verificationCode = rand(100000, 999999); // 6 haneli rastgele kod
 
         // Send SMS
         $smsService = new \App\Services\SmsService();
         $response = $smsService->sendSms([
-            'recipient' => $request->phone,
+            'recipient' => $phoneWithPrefix,
             'message' => 'Doğrulama kodunuz: ' . $verificationCode,
         ]);
 
         if (isset($response['result']) && $response['result'] === true) {
             // Kod oturuma kaydedilir
-            session(['verification_code' => $verificationCode, 'verification_phone' => $request->phone]);
-            return back()->with('success', 'Doğrulama kodu başarıyla gönderildi.');
+            session(['verification_code' => $verificationCode, 'verification_phone' => $phoneWithPrefix]);
+            return response()->json(['success' => true]);
         } else {
-            return back()->with('error', 'Doğrulama kodu gönderilemedi.');
+            return response()->json(['success' => false, 'message' => 'Kod gönderilemedi.']);
         }
     }
 
     public function verifyPhone(Request $request)
     {
         $request->validate([
-            'phone' => 'required|regex:/^[0-9]{10,15}$/',
+            'phone' => 'required|regex:/^[0-9]{10,15}$/|unique:users,phone',
             'verification_code' => 'required|digits:6',
-            'kvkk_agreement' => 'accepted', // KVKK onayı zorunlu
+            'kvkk_agreement' => 'accepted',
         ]);
+
+        $phoneWithPrefix = '90' . $request->phone;
 
         // Doğrulama kodunu kontrol et
         if (
             session('verification_code') == $request->verification_code &&
-            session('verification_phone') == $request->phone
+            session('verification_phone') == $phoneWithPrefix
         ) {
             $user = Auth::user();
             $user->update([
-                'phone' => $request->phone,
+                'phone' => $phoneWithPrefix,
                 'phone_verified' => true,
                 'kvkk_accepted' => true,
             ]);
@@ -91,6 +105,4 @@ class AuthController extends Controller
 
         return back()->with('error', 'Doğrulama kodu yanlış veya süresi dolmuş.');
     }
-
-
 }
