@@ -9,9 +9,8 @@ use App\Http\Controllers\SmsController;
 
 // Anasayfayı /sms/send rotasına yönlendir
 Route::get('/', function () {
-    return redirect('/sms/send');
+    return view('home');
 });
-
 // /sms/send rotasına erişim herkese açık
 Route::get('/sms/send', [SmsController::class, 'showForm'])->name('sms.form');
 Route::post('/sms/send', [SmsController::class, 'send'])->name('sms.send');
@@ -29,7 +28,6 @@ Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'
 // Login gerektiren rotalar
 Route::middleware(['auth'])->group(function () {
     // Diğer SMS rotaları
-    Route::get('/credits', [CreditController::class, 'show'])->name('credits.show');
     Route::post('/credits/process', [CreditController::class, 'process'])->name('credits.process');
     Route::get('/credits/success', [CreditController::class, 'success'])->name('credits.success');
     Route::get('/credits/fail', [CreditController::class, 'fail'])->name('credits.fail');
@@ -50,13 +48,15 @@ Route::middleware(['auth'])->group(function () {
         return view('kvkk');
     })->name('kvkk');
 
-    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register.form');
-    Route::post('/register', [AuthController::class, 'register'])->name('register');
-
     Route::get('/credits', [CreditController::class, 'show'])->name('credits.show');
     Route::post('/credits/process', [CreditController::class, 'process'])->name('credits.process');
     Route::get('/credits/success', [CreditController::class, 'success'])->name('credits.success');
     Route::get('/credits/fail', [CreditController::class, 'fail'])->name('credits.fail');
 
 });
-
+    Route::get('/credits', [CreditController::class, 'show'])->name('credits.show');
+    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register.form');
+    Route::post('/register', [AuthController::class, 'register'])->name('register');
+    Route::get('/nasil', function () {
+    return view('nasil');
+    })->name('nasil');
