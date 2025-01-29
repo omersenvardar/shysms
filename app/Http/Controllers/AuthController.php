@@ -13,7 +13,6 @@ class AuthController extends Controller
     {
         $request->validate([
             'nickname' => 'required|max:255',
-            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:1',
         ]);
 

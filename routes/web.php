@@ -12,13 +12,11 @@ Route::get('/', function () {
     return view('home');
 });
 // /sms/send rotasına erişim herkese açık
-Route::get('/sms/send', [SmsController::class, 'showForm'])->name('sms.form');
-Route::post('/sms/send', [SmsController::class, 'send'])->name('sms.send');
 
 // Logout işlemi sonrası /sms/send sayfasına yönlendir
 Route::post('/logout', function () {
     Auth::logout();
-    return redirect('/sms/send');
+    return redirect('/');
 })->name('logout');
 
 // Oturum açma işlemleri
@@ -39,10 +37,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Kayıt ve telefon doğrulama
 
-    Route::get('/phone/verify', [AuthController::class, 'showPhoneVerifyForm'])->name('phone.verify.form');
-    Route::post('/phone/verify', [AuthController::class, 'verifyPhone'])->name('phone.verify');
-    Route::post('/phone/send-code', [AuthController::class, 'sendVerificationCode'])->name('phone.send-code');
-
     // KVKK sayfası
     Route::get('/kvkk', function () {
         return view('kvkk');
@@ -53,10 +47,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/credits/success', [CreditController::class, 'success'])->name('credits.success');
     Route::get('/credits/fail', [CreditController::class, 'fail'])->name('credits.fail');
 
+    Route::get('/sms/send', [SmsController::class, 'showForm'])->name('sms.form');
+    Route::post('/sms/send', [SmsController::class, 'send'])->name('sms.send');
+
 });
     Route::get('/credits', [CreditController::class, 'show'])->name('credits.show');
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register.form');
     Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::get('/phone/verify', [AuthController::class, 'showPhoneVerifyForm'])->name('phone.verify.form');
+Route::post('/phone/verify', [AuthController::class, 'verifyPhone'])->name('phone.verify');
+Route::post('/phone/send-code', [AuthController::class, 'sendVerificationCode'])->name('phone.send-code');
     Route::get('/nasil', function () {
     return view('nasil');
     })->name('nasil');

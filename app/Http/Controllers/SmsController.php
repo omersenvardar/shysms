@@ -18,6 +18,10 @@ class SmsController extends Controller
 
     public function showForm()
     {
+        if (Auth::user()->phone_verified == 0) {
+            return redirect()->route('phone.verify.form')
+                ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
+        }
         return view('sms.send');
     }
 
@@ -25,6 +29,10 @@ class SmsController extends Controller
     {
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'SMS göndermek için giriş yapmalısınız.');
+        }
+        if (Auth::user()->phone_verified == 0) {
+            return redirect()->route('phone.verify.form')
+                ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
         }
         // Form verilerini doğrula
         $request->validate([

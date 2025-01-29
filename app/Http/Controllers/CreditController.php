@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Credit;
 use App\Models\Paket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 class CreditController extends Controller
@@ -17,6 +18,10 @@ class CreditController extends Controller
 
     public function process(Request $request)
     {
+        if (Auth::user()->phone_verified == 0) {
+            return redirect()->route('phone.verify.form')
+                ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
+        }
         $request->validate([
             'paket_id' => 'required|exists:paketler,id',
             'payment_method' => 'required|in:credit_card,gsm',

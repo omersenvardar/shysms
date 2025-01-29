@@ -4,12 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Services\SmsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 class InboxController extends Controller
 {
     public function show()
     {
+        if (Auth::user()->phone_verified == 0) {
+            return redirect()->route('phone.verify.form')
+                ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
+        }
+
         $apiKey = '2fedf9d2ba43f485dbcb751afb2702246222c764';
         $apiUrl = 'https://api.organikhaberlesme.com/sms/inbox/message';
 
@@ -40,6 +46,10 @@ class InboxController extends Controller
 
     public function getKeywords()
     {
+        if (Auth::user()->phone_verified == 0) {
+            return redirect()->route('phone.verify.form')
+                ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
+        }
         // API'den anahtar kelimeleri çek
         $response = Http::withHeaders([
             'X-Organik-Auth' => '2fedf9d2ba43f485dbcb751afb2702246222c764', // API Anahtarınız
@@ -54,6 +64,10 @@ class InboxController extends Controller
     }
     public function reply(Request $request, SmsService $smsService)
     {
+        if (Auth::user()->phone_verified == 0) {
+            return redirect()->route('phone.verify.form')
+                ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
+        }
         // Form doğrulama
         $request->validate([
             'message_id' => 'required|integer',
