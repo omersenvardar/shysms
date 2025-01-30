@@ -33,14 +33,25 @@
         .custom-navbar .nav-link {
             color: black !important;
             font-weight: bold;
+            position: relative; /* Hover alt çizgiyi eklemek için */
         }
 
-        .custom-navbar .navbar-toggler-icon {
-            background-color: black;
+        /* Hover efekti: Alt çizgi kırmızı */
+        .custom-navbar .nav-link::after {
+            content: "";
+            display: block;
+            width: 100%;
+            height: 2px;
+            background-color: red;
+            position: absolute;
+            left: 0;
+            bottom: -3px; /* Yazının hemen altına */
+            transform: scaleX(0); /* Başlangıçta gizli */
+            transition: transform 0.3s ease-in-out;
         }
 
-        .custom-navbar .nav-link:hover {
-            text-decoration: underline;
+        .custom-navbar .nav-link:hover::after {
+            transform: scaleX(1); /* Hover yapıldığında çizgiyi göster */
         }
 
         /* Footer */
