@@ -38,9 +38,7 @@ Route::middleware(['auth'])->group(function () {
     // Kayıt ve telefon doğrulama
 
     // KVKK sayfası
-    Route::get('/kvkk', function () {
-        return view('kvkk');
-    })->name('kvkk');
+
 
     Route::get('/credits', [CreditController::class, 'show'])->name('credits.show');
     Route::post('/credits/process', [CreditController::class, 'process'])->name('credits.process');
@@ -60,3 +58,22 @@ Route::post('/phone/send-code', [AuthController::class, 'sendVerificationCode'])
     Route::get('/nasil', function () {
     return view('nasil');
     })->name('nasil');
+Route::get('/gizlilik', function () {
+    return view('gizlilik');
+})->name('gizlilik');
+
+Route::get('/kvkk', function () {
+    return view('kvkk');
+})->name('kvkk');
+
+Route::get('/hakkimizda', function () {
+    return view('hakkimizda');
+})->name('hakkimizda');
+
+Route::get('/mesafe', function () {
+    return view('mesafe');
+})->name('mesafe');
+
+Route::get('/teslimat', function () {
+    return view('teslimat');
+})->name('teslimat');
