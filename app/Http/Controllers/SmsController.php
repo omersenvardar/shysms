@@ -22,8 +22,14 @@ class SmsController extends Controller
             return redirect()->route('phone.verify.form')
                 ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
         }
-        return view('sms.send');
+
+        // Kullanıcıya ait kayıtlı alıcıları al
+        $recipients = \App\Models\Recipient::where('user_id', Auth::id())->get();
+
+        // View'e alıcıları gönder
+        return view('sms.send', compact('recipients'));
     }
+
 
     public function send(Request $request, SmsService $smsService)
     {
@@ -35,10 +41,19 @@ class SmsController extends Controller
                 ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
         }
 
+        // Yeni alıcı mı, kayıtlı alıcı mı kontrol et
+        $isNewRecipient = $request->has('recipient'); // Yeni alıcı kısmı mı?
+        $recipientPhone = $isNewRecipient ? $request->recipient : $request->recipient_id;
+
+        // Telefon numarasını başında 90 olacak şekilde düzenle
+        if (!str_starts_with($recipientPhone, '90')) {
+            $recipientPhone = "90" . $recipientPhone;
+        }
+
         // Form verilerini doğrula
         $request->validate([
-            'recipient' => 'required|regex:/^[0-9]{10,15}$/', // 10-15 haneli numara kontrolü
-            'message' => 'required|max:1224',                // Mesaj sınırı 1224 karakter
+            'message' => 'required|max:1224',
+            'nickname' => 'required_if:is_new,true|max:255', // Yeni alıcı için nickname gerekli
         ]);
 
         // Kullanıcı kontör kontrolü
@@ -52,10 +67,15 @@ class SmsController extends Controller
             return redirect()->route('credits.show')->with('error', 'Yetersiz kontör! Lütfen kontör satın alın.');
         }
 
+        $nickname = Auth::user()->nickname;
+
+        // Mesajı formatla
+        $formattedMessage = "{$nickname}: {$request->message}";
+
         // SMS Gönderme işlemi
         $data = [
-            'recipient' => $request->recipient,
-            'message' => $request->message,
+            'recipient' => $recipientPhone,
+            'message' => $formattedMessage,
         ];
 
         $response = $smsService->sendSms($data);
@@ -76,5 +96,6 @@ class SmsController extends Controller
             return redirect()->back()->with('error', 'Mesaj gönderilemedi: ' . $errorMessage);
         }
     }
+
 
 }

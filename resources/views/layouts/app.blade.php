@@ -108,6 +108,9 @@
                     </li>
                 @endguest
                 @auth
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('inbox.show') }}">Gelen Kutusu</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> {{ Auth::user()->name }} ({{ floor($totalCredits) }} Kontör)
@@ -126,6 +129,7 @@
         </div>
     </div>
 </nav>
+
 
 <!-- İçerik Alanı -->
 <main>

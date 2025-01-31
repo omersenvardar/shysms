@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CreditController;
+use App\Http\Controllers\PaketController;
+use App\Http\Controllers\PaymentCallbackController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InboxController;
 use Illuminate\Support\Facades\Auth;
@@ -77,3 +79,7 @@ Route::get('/mesafe', function () {
 Route::get('/teslimat', function () {
     return view('teslimat');
 })->name('teslimat');
+
+Route::post('/paket/buy/{id}', [PaketController::class, 'buy'])->name('paket.buy');
+
+Route::post('/payment-callback', [PaymentCallbackController::class, 'handle'])->name('payment.callback');

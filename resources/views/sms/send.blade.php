@@ -8,9 +8,25 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <style>
+    .custom-navbar {
+        background-color: #FFD700;
+        padding: 1.1rem 10px;
+    }
+
+    .custom-navbar .navbar-brand, .custom-navbar .nav-link {
+        color: black !important;
+        font-weight: bold;
+    }
+
+    .custom-navbar .navbar-toggler-icon {
+        background-color: black;
+    }
+
+    .hidden {
+        display: none;
+    }
+
     .phone-input-container {
-        display: flex;
-        align-items: center;
         position: relative;
     }
 
@@ -27,29 +43,7 @@
     }
 
     .phone-input-container .form-control {
-        padding-left: 60px; /* +90 için boşluk */
-    }
-    .custom-navbar {
-        background-color: #FFD700; /* Tam sarı */
-        padding: 1.1rem 10px; /* Genişlik ve yükseklik artışı için */
-    }
-
-    .custom-navbar .navbar-brand {
-        color: black !important;
-        font-weight: bold;
-    }
-
-    .custom-navbar .nav-link {
-        color: black !important;
-        font-weight: bold;
-    }
-
-    .custom-navbar .navbar-toggler-icon {
-        background-color: black;
-    }
-
-    .custom-navbar .nav-link:hover {
-        text-decoration: underline;
+        padding-left: 60px;
     }
 </style>
 <body>
@@ -63,23 +57,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('nasil') }}">Nasıl Çalışır</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('credits.show') }}">Paketler</a>
-                </li>
-                @guest
-                    <!-- Kayıt Ol ve Giriş Yap yalnızca oturum açmamış kullanıcılar için -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('register') }}">Kayıt Ol</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Giriş Yap</a>
-                    </li>
-                @endguest
+                <li class="nav-item"><a class="nav-link" href="{{ route('nasil') }}">Nasıl Çalışır</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('credits.show') }}">Paketler</a></li>
                 @auth
-                    <!-- Oturum açmış kullanıcılar için -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> {{ Auth::user()->name }} ({{ floor($totalCredits) }} Kontör)
@@ -90,75 +70,134 @@
                             </li>
                         </ul>
                     </li>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                        @csrf
-                    </form>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
                 @endauth
             </ul>
         </div>
     </div>
 </nav>
+<div class="container mt-3">
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show auto-close-alert" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show auto-close-alert" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+</div>
+
 <!-- Main Section -->
 <div class="container mt-5">
     <div class="row">
         <!-- Form Section -->
-        <div class="container mt-5">
-            <div class="row">
-                <!-- Form Section -->
-                <div class="col-md-6">
-                    <h2 class="mb-4">İsimsiz bir kısa mesaj gönderin. Şimdi deneyin!</h2>
-                    <form action="{{ route('sms.send') }}" method="POST">
-                        @csrf
-                        <div class="mb-3 position-relative">
-                            <label for="recipient" class="form-label">Alıcı Telefon Numarası</label>
-                            <div class="phone-input-container">
-                                <span class="country-code">+90</span>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="recipient"
-                                    name="recipient"
-                                    maxlength="10"
-                                    pattern="\d{10}"
-                                    placeholder="5555555555"
-                                    required
-                                >
-                            </div>
-                            <small id="phone-help" class="form-text text-muted">
-                                Telefon numarasını başında 0 olmadan 10 hane olarak girin.
-                            </small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="message" class="form-label">Mesaj İçeriği</label>
-                            <textarea
-                                class="form-control"
-                                id="message"
-                                name="message"
-                                rows="4"
-                                maxlength="1224"
-                                placeholder="Mesajınızı buraya yazın"
-                                required
-                            ></textarea>
-                            <small id="credit-info" class="form-text text-muted mt-2">Mesajınız 0 kontör gerektiriyor.</small>
-                        </div>
-                        <button type="submit" class="btn btn-warning w-100">Gönder</button>
-                    </form>
-                </div>
-                <!-- Preview Section -->
-                <div class="col-md-6 text-center">
-                    <div class="mobile-device" style="position: relative; width: 360px; height: 660px; background: #e3f2fd; border-radius: 30px; margin: 0 auto;">
-                        <div class="device-camera" style="width: 50px; height: 5px; background: #ccc; border-radius: 10px; position: absolute; top: 15px; left: 50%; transform: translateX(-50%);"></div>
-                        <div class="device-screen-container" style="position: absolute; top: 50px; bottom: 20px; left: 20px; right: 20px; background: #fff; border-radius: 20px; padding: 15px; box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);">
-                            <div class="text-bubble" style="background: #00bcd4; color: #fff; padding: 10px 15px; border-radius: 15px; max-width: 80%; margin-bottom: 10px;">
-                                <p id="preview-message" style="margin: 0;">Hey! Bu gizli bir göndericiden bir metin mesajı. Kendiniz deneyin! 😄</p>
-                            </div>
-                            <span class="preview-info" style="font-size: 0.9rem; color: #666;">Bu SMS size www.utangacsms.com tarafından, utangaç bir üyemiz tarafından gönderilmiştir. Mesaja cevap yazarsanız kendisine iletilecektir.</span>
-                        </div>
+        <div class="col-md-6">
+            <h2 class="mb-4">İsimsiz bir kısa mesaj gönderin. Şimdi deneyin!</h2>
+
+            <!-- Button Section -->
+            <div class="mb-4">
+                <button id="new-recipient-btn" class="btn btn-success">Yeni Alıcılara Mesaj Gönder</button>
+                <button id="existing-recipient-btn" class="btn btn-warning">Kayıtlı Alıcılara Mesaj Gönder</button>
+            </div>
+
+            <!-- New Recipient Form -->
+            <form id="new-recipient-form" action="{{ route('sms.send') }}" method="POST">
+                @csrf
+                <div class="mb-3 position-relative">
+                    <label for="recipient" class="form-label">Alıcı Telefon Numarası</label>
+                    <div class="phone-input-container">
+                        <span class="country-code">+90</span>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="recipient"
+                            name="recipient"
+                            maxlength="10"
+                            pattern="\d{10}"
+                            placeholder="5555555555"
+                            required
+                        >
                     </div>
+                    <small id="phone-help" class="form-text text-muted">
+                        Telefon numarasını başında 0 olmadan 10 hane olarak girin.
+                    </small>
+                </div>
+                <div class="mb-3">
+                    <label for="nickname" class="form-label">Alıcı Nickname</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="nickname"
+                        name="nickname"
+                        maxlength="255"
+                        placeholder="Alıcı nickname girin"
+                        required
+                    >
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Mesaj İçeriği</label>
+                    <textarea
+                        class="form-control"
+                        id="message"
+                        name="message"
+                        rows="4"
+                        maxlength="1224"
+                        placeholder="Mesajınızı buraya yazın"
+                        required
+                    ></textarea>
+                    <small id="credit-info" class="form-text text-muted mt-2">Mesajınız 0 kontör gerektiriyor.</small>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Gönder</button>
+            </form>
+
+            <!-- Existing Recipient Form -->
+            <form id="existing-recipient-form" action="{{ route('sms.send') }}" method="POST" class="hidden">
+                @csrf
+                <div class="mb-3">
+                    <label for="recipient_id" class="form-label">Kayıtlı Alıcılar</label>
+                    <select class="form-select" id="recipient_id" name="recipient_id" required>
+                        <option value="">Alıcı Seçin</option>
+                        @foreach ($recipients as $recipient)
+                            <option value="{{ $recipient->recipient_phone }}">{{ $recipient->recipient_nickname }} - {{ $recipient->recipient_phone }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Mesaj İçeriği</label>
+                    <textarea
+                        class="form-control"
+                        id="message"
+                        name="message"
+                        rows="4"
+                        maxlength="1224"
+                        placeholder="Mesajınızı buraya yazın"
+                        required
+                    ></textarea>
+                    <small id="credit-info" class="form-text text-muted mt-2">Mesajınız 0 kontör gerektiriyor.</small>
+                </div>
+                <button type="submit" class="btn btn-warning w-100">Gönder</button>
+            </form>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="col-md-6 text-center">
+            <div class="mobile-device" style="position: relative; width: 360px; height: 660px; background: #e3f2fd; border-radius: 30px; margin: 0 auto;">
+                <div class="device-camera" style="width: 50px; height: 5px; background: #ccc; border-radius: 10px; position: absolute; top: 15px; left: 50%; transform: translateX(-50%);"></div>
+                <div class="device-screen-container" style="position: absolute; top: 50px; bottom: 20px; left: 20px; right: 20px; background: #fff; border-radius: 20px; padding: 15px; box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);">
+                    <div class="text-bubble" style="background: #00bcd4; color: #fff; padding: 10px 15px; border-radius: 15px; max-width: 80%; margin-bottom: 10px;">
+                        <p id="preview-message" style="margin: 0;">Hey! Bu gizli bir göndericiden bir metin mesajı. Kendiniz deneyin! 😄</p>
+                    </div>
+                    <span class="preview-info" style="font-size: 0.9rem; color: #666;">Bu SMS size www.utangacsms.com tarafından, utangaç bir üyemiz tarafından gönderilmiştir. Mesaja cevap yazarsanız kendisine iletilecektir.</span>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- Info Section -->
     <div class="container mt-5">
         <div class="row text-center">
@@ -183,51 +222,43 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const newRecipientBtn = document.getElementById("new-recipient-btn");
+        const existingRecipientBtn = document.getElementById("existing-recipient-btn");
+        const newRecipientForm = document.getElementById("new-recipient-form");
+        const existingRecipientForm = document.getElementById("existing-recipient-form");
+
+        // Default olarak yeni alıcı formunu göster
+        newRecipientForm.classList.remove("hidden");
+        existingRecipientForm.classList.add("hidden");
+
+        // Yeni Alıcılar Butonu
+        newRecipientBtn.addEventListener("click", function () {
+            newRecipientForm.classList.remove("hidden");
+            existingRecipientForm.classList.add("hidden");
+        });
+
+        // Kayıtlı Alıcılar Butonu
+        existingRecipientBtn.addEventListener("click", function () {
+            existingRecipientForm.classList.remove("hidden");
+            newRecipientForm.classList.add("hidden");
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // 1.5 saniye sonra alert mesajlarını otomatik kapat
+        setTimeout(function () {
+            let alerts = document.querySelectorAll(".auto-close-alert");
+            alerts.forEach(function (alert) {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 1500);
+    });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const recipientInput = document.getElementById("recipient");
-
-        recipientInput.addEventListener("input", function () {
-            // Sadece sayıları kabul et
-            this.value = this.value.replace(/\D/g, "");
-            // Maksimum 10 hane kontrolü
-            if (this.value.length > 10) {
-                this.value = this.value.slice(0, 10);
-            }
-        });
-    });
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const messageInput = document.getElementById("message");
-        const previewMessage = document.getElementById("preview-message");
-        const characterCount = document.getElementById("character-count");
-
-        messageInput.addEventListener("input", function () {
-            const message = messageInput.value;
-
-            if (message.trim() === "") {
-                previewMessage.textContent = "Hey! Bu gizli bir göndericiden bir metin mesajı. Kendiniz deneyin! 😄";
-            } else {
-                previewMessage.textContent = message;
-            }
-
-            characterCount.textContent = `${message.length}/140 karakter`;
-        });
-    });
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const messageInput = document.getElementById("message");
-        const creditInfo = document.getElementById("credit-info");
-
-        messageInput.addEventListener("input", function () {
-            const messageLength = messageInput.value.length;
-            const requiredCredits = Math.ceil(messageLength / 140);
-            creditInfo.textContent = `Mesajınız ${requiredCredits} kontör gerektiriyor.`;
-        });
-    });
-</script>
 </body>
 </html>

@@ -72,11 +72,11 @@
 
         <h4>Satıcı Bilgileri</h4>
         <ul>
-            <li><strong>Unvan:</strong> Utangaç SMS</li>
+            <li><strong>Unvan:</strong> Mgore Gayrimenkul Hizmetleri LTDİ</li>
             <li><strong>Web Sitesi:</strong> <a href="https://www.utangacsms.com">www.utangacsms.com</a></li>
             <li><strong>E-posta:</strong> <a href="mailto:destek@utangacsms.com">destek@utangacsms.com</a></li>
             <li><strong>Adres:</strong> [Satıcı Adresi]</li>
-            <li><strong>Telefon:</strong> [Satıcı Telefon Numarası]</li>
+            <li><strong>Telefon:</strong> 03129112589 </li>
         </ul>
 
         <h4>Alıcı Bilgileri</h4>

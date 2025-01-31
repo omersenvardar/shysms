@@ -16,6 +16,7 @@ class Paket extends Model
         'kontoradeti',
         'kontorbedeli',
         'paketbedeli',
+        'odeme_linki',
     ];
 
 }

@@ -30,8 +30,24 @@ class InboxController extends Controller
             $data = $response->json();
 
             if (isset($data['result']) && $data['result'] === true) {
-                $messages = $data['data'];
-                session(['messages' => $messages]); // Gelen mesajları oturuma kaydet
+                $nickname = Auth::user()->nickname; // Kullanıcının nickname'ini al
+                $allMessages = $data['data'];
+
+                // Mesajları filtrele: sadece ':' öncesi nickname ile eşleşen mesajları al
+                $messages = array_filter($allMessages, function ($message) use ($nickname) {
+                    if (isset($message['message'])) {
+                        // ':' karakterine göre ayır ve ilk kısmı al
+                        $parts = explode(':', $message['message'], 2);
+                        if (count($parts) > 1) {
+                            $senderNickname = trim($parts[0]); // ':' öncesindeki kısmı al
+                            // Büyük/küçük harf duyarsız kontrol yap
+                            return strcasecmp($senderNickname, $nickname) === 0;
+                        }
+                    }
+                    return false;
+                });
+
+                session(['messages' => $messages]); // Filtrelenmiş mesajları oturuma kaydet
             } else {
                 $messages = [];
                 $error = $data['error']['message'] ?? 'Bilinmeyen bir hata oluştu.';
@@ -68,6 +84,7 @@ class InboxController extends Controller
             return redirect()->route('phone.verify.form')
                 ->with('error', 'Lütfen telefon numaranızı doğrulayın.');
         }
+
         // Form doğrulama
         $request->validate([
             'message_id' => 'required|integer',
@@ -88,10 +105,16 @@ class InboxController extends Controller
             return redirect()->back()->with('error', 'Gönderici numarası bulunamadı.');
         }
 
+        // Kullanıcının nickname'ini alın
+        $nickname = Auth::user()->nickname;
+
+        // Mesajın formatını düzenleyin: 'nickname: mesaj içeriği'
+        $formattedMessage = "{$nickname}: {$request->reply_text}";
+
         // Gönderilecek veri
         $data = [
             'recipient' => $recipient,
-            'message' => $request->reply_text,
+            'message' => $formattedMessage,
         ];
 
         // SMS gönderme işlemi
@@ -104,7 +127,6 @@ class InboxController extends Controller
             return redirect()->back()->with('error', 'Cevap gönderilemedi: ' . $errorMessage);
         }
     }
-
 
 
 }

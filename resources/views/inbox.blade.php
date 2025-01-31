@@ -13,7 +13,6 @@
         @endif
 
         <div class="list-group">
-            @dd($messages)
             @foreach ($messages as $key => $message)
                 <div class="list-group-item message-item" data-bs-toggle="collapse" data-bs-target="#message-{{ $key }}">
                     <div class="d-flex justify-content-between">
